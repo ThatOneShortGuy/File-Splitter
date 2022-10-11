@@ -3,30 +3,37 @@
 import os
 import sys
 
-def combine_files(dirname, filename=None, delete=False):
+
+def combine_files(dirname=None, delete=False, filename=None):
     '''Combine files in directory `dirname` into single file `filename`'''
+    files = sorted([file for file in os.listdir(dirname) if file.endswith('.part')])
     if not filename:
-        filename = dirname.replace('split', '')
+        filename = files[0][:-13]
     with open(filename, 'wb') as f:
-        for filename in os.listdir(dirname):
-            with open(os.path.join(dirname, filename), 'rb') as f2:
+        for file in files:
+            with open(os.path.join(dirname, file), 'rb') as f2:
                 f.write(f2.read())
     if delete:
-        for filename in os.listdir(dirname):
-            os.remove(os.path.join(dirname, filename))
-        os.rmdir(dirname)
+        for file in files:
+            os.remove(os.path.join(dirname, file))
+
 
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
-        print(f'Usage: {sys.argv[0]} dirname [filename: default dirname - split] [delete: default False]')
+    if len(sys.argv) > 4:
+        print(f'Usage: {sys.argv[0]} [DIRNAME: optional | default current directory] [DELETE: optional | default True] [FILENAME: optional]')
         sys.exit(1)
-    if len(sys.argv) == 2:
+    # sys.argv.appends('D:/Music/Hentai Mode.mp3split')
+    if len(sys.argv) == 1:
+        dirname = os.getcwd()
+        delete = True
         filename = None
-        delete = False
+    elif len(sys.argv) == 2:
+        dirname = sys.argv[1]
+        delete = True
+        filename = None
     elif len(sys.argv) == 3:
-        filename = sys.argv[2]
-        delete = False
+        dirname, delete = sys.argv[1:-1]
+        filename = None
     else:
-        filename = sys.argv[2]
-        delete = bool(sys.argv[3])
-    combine_files(sys.argv[1], filename, delete)
+        dirname, delete, filename = sys.argv[1:]
+    combine_files(dirname, bool(delete), filename)
